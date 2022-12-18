@@ -3,6 +3,7 @@ tests/*
 !tests/*.c
 !tests/*.h
 !tests/*.txt
+compile_commands.json
 
 ######################
 # C Ignores
