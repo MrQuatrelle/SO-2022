@@ -338,7 +338,7 @@ int tfs_copy_from_external_fs(const char* source_path, const char* dest_path) {
                               (tfs_default_params().block_size), extFile);
 
     if (bytes_read)
-        buffer[bytes_read - 1] = '\0';
+        buffer[bytes_read] = '\0';
 
     ssize_t bytes_wrote = tfs_write(fhandle, buffer, strlen(buffer));
 
