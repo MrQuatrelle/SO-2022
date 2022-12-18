@@ -23,6 +23,7 @@ pthread_rwlock_t alloc_table_rwlock;
 // Data blocks
 static char* fs_data; // # blocks * block size
 static allocation_state_t* free_blocks;
+pthread_rwlock_t block_table_rwlock;
 
 /*
  * Volatile FS state
@@ -110,6 +111,10 @@ int state_init(tfs_params params) {
 
     fs_data = malloc(DATA_BLOCKS * BLOCK_SIZE);
     free_blocks = malloc(DATA_BLOCKS * sizeof(allocation_state_t));
+
+    if (pthread_rwlock_init(&block_table_rwlock, NULL))
+        PANIC("Error initializing inode allocation table rwlock");
+
     open_file_table = malloc(MAX_OPEN_FILES * sizeof(open_file_entry_t));
 
     if (pthread_rwlock_init(&open_file_table_rwlock, NULL))
@@ -447,6 +452,9 @@ int find_in_dir(inode_t const* inode, char const* sub_name) {
  *   - No free data blocks.
  */
 int data_block_alloc(void) {
+
+    pthread_rwlock_wrlock(&block_table_rwlock);
+
     for (size_t i = 0; i < DATA_BLOCKS; i++) {
         if (i * sizeof(allocation_state_t) % BLOCK_SIZE == 0) {
             insert_delay(); // simulate storage access delay to free_blocks
@@ -455,9 +463,11 @@ int data_block_alloc(void) {
         if (free_blocks[i] == FREE) {
             free_blocks[i] = TAKEN;
 
+            pthread_rwlock_unlock(&block_table_rwlock);
             return (int)i;
         }
     }
+    pthread_rwlock_unlock(&block_table_rwlock);
     return -1;
 }
 
