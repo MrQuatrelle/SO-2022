@@ -92,9 +92,9 @@ int tfs_open(const char* name, tfs_file_mode_t mode) {
                       "tfs_open: directory files must have an inode");
 
         // If inode is a sym link.
-        if(inode->i_node_type == T_SYM_LINK){
-            inum = tfs_lookup(inode->target,root_dir_inode);
-            if(inum == -1){
+        if (inode->i_node_type == T_SYM_LINK) {
+            inum = tfs_lookup(inode->target, root_dir_inode);
+            if (inum == -1) {
                 return -1;
             }
         }
@@ -152,8 +152,8 @@ int tfs_sym_link(const char* target, const char* link_name) {
     // target file/directory doesn't exist
     int target_i_num = tfs_lookup(target, root_dir_inode);
     if (!(target_i_num > 0))
-        return -1; 
-        
+        return -1;
+
     // target is not greater than a block size.
     if (strlen(target) == (tfs_default_params().block_size + 1)) {
         return -1;
@@ -161,9 +161,9 @@ int tfs_sym_link(const char* target, const char* link_name) {
     // creat link to target
     int sym_link_inum = inode_create(T_SYM_LINK);
     inode_t* sym_link_inode = inode_get(sym_link_inum);
-    strcpy(sym_link_inode->target,target);
+    strcpy(sym_link_inode->target, target);
 
-    if (add_dir_entry(root_dir_inode, link_name +1, sym_link_inum) == -1) {
+    if (add_dir_entry(root_dir_inode, link_name + 1, sym_link_inum) == -1) {
         return -1; // no space
     };
     return 0;
@@ -182,7 +182,6 @@ int tfs_link(const char* target, const char* link_name) {
         return -1;
     }
 
-
     inode_t* root_dir_inode = inode_get(ROOT_DIR_INUM);
     ALWAYS_ASSERT(root_dir_inode != NULL,
                   "tfs_link: root dir inode must exist");
@@ -196,7 +195,7 @@ int tfs_link(const char* target, const char* link_name) {
 
     inode_t* target_inode = inode_get(target_i_num);
 
-    if(target_inode->i_node_type == T_SYM_LINK){
+    if (target_inode->i_node_type == T_SYM_LINK) {
         return -1;
     }
 
@@ -299,12 +298,12 @@ int tfs_unlink(const char* target) {
         return -1; // target file/directory doesn't exist
 
     inode_t* inode_target = inode_get(target_i_num);
-    if(inode_target->i_node_type == T_SYM_LINK){
-        clear_dir_entry(root_dir_inode,target+1);
+    if (inode_target->i_node_type == T_SYM_LINK) {
+        clear_dir_entry(root_dir_inode, target + 1);
         inode_delete(target_i_num);
     }
 
-    clear_dir_entry(root_dir_inode,target+1);
+    clear_dir_entry(root_dir_inode, target + 1);
     inode_delete(target_i_num);
     return 0;
 }
@@ -334,8 +333,8 @@ int tfs_copy_from_external_fs(const char* source_path, const char* dest_path) {
     }
 
     memset(buffer, 0, sizeof(char) * (tfs_default_params().block_size));
-    size_t bytes_read = fread(buffer, sizeof(char),
-                              (tfs_default_params().block_size), extFile);
+    size_t bytes_read =
+        fread(buffer, sizeof(char), (tfs_default_params().block_size), extFile);
 
     if (bytes_read)
         buffer[bytes_read] = '\0';
