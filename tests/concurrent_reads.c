@@ -20,7 +20,6 @@ void* thread_fn(void* arg) {
     int fh = tfs_open(args.filename, 0); // 0 = RO
     if (fh == -1)
         printf("probably running out of open file entries\n");
-    else printf("got file entry\n");
     sleep(1); // waits for everyone to open the file
     tfs_read(fh, buffer, 5);
     if(strcmp(buffer, str)) {
