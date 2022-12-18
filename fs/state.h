@@ -32,6 +32,8 @@ typedef struct {
         };
         char target[1024];
     };
+
+    pthread_rwlock_t* rwlock;
     // in a more complete FS, more fields could exist here
 } inode_t;
 
