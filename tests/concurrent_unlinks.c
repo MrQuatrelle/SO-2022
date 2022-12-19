@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NUM_THREADS 1024
+#define NUM_THREADS 22 // max dir entries in a directory with block size 1024
 
 typedef struct {
     char path_generated_file[7];

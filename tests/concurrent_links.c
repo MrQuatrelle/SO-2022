@@ -5,17 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NUM_THREADS 1024
+#define NUM_THREADS 22 // max dir entries in a directory with block size 1024
 char const file_contents[] = "message";
 
 typedef struct {
-    char path_generated_file[7];
+    char* path_generated_file;
 } thread_input;
 
 void* thread_fn(void* in) {
     thread_input* args = (thread_input*)in;
+    printf("%s\n", args->path_generated_file);
     assert(tfs_link("/target", args->path_generated_file) != -1);
-    free(args);
     return NULL;
 }
 
@@ -30,11 +30,12 @@ int main() {
 
     int fh = tfs_open("/target", TFS_O_CREAT);
     assert(fh != -1);
-    tfs_write(fh, file_contents, sizeof(file_contents));
+    tfs_write(fh, file_contents, strlen(file_contents));
     tfs_close(fh);
 
     for (int i = 0; i < NUM_THREADS; i++) {
         thread_input* input = (thread_input*)malloc(sizeof(thread_input));
+        input->path_generated_file = malloc(strlen(file_contents) * sizeof(char));
         sprintf(input->path_generated_file, "/l%d", i);
         if (pthread_create(&tid[i], NULL, thread_fn, (void*)input) != 0)
             return 1;
@@ -44,13 +45,14 @@ int main() {
         pthread_join(tid[i], NULL);
     }
 
-    char link_name[7];
     for (int i = 0; i < NUM_THREADS; i++) {
+        char link_name[7];
         sprintf(link_name, "/l%d", i);
-        int lh = tfs_open(link_name, TFS_O_APPEND);
+        int lh = tfs_open(link_name, 0);
         assert(lh != -1);
-        char buffer[sizeof(file_contents)];
-        assert(tfs_read(lh, buffer, sizeof(buffer)) == sizeof(buffer));
+        char buffer[strlen(file_contents) + 1];
+        ssize_t read = tfs_read(lh, buffer, sizeof(buffer));
+        printf("%s %zd %lu\n", buffer, read, sizeof(buffer));
         assert(memcmp(buffer, file_contents, sizeof(buffer)) == 0);
         assert(tfs_close(lh) != -1);
     }

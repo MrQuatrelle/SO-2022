@@ -205,12 +205,16 @@ int tfs_link(const char* target, const char* link_name) {
 
     inode_t* target_inode = inode_get(target_i_num);
 
+    inode_lock(target_inode, READ_WRITE);
+
     if (target_inode->i_node_type == T_SYM_LINK) {
+        inode_unlock(target_inode);
         return -1;
     }
 
     target_inode->hard_link_counter++;
 
+    inode_unlock(target_inode);
     return 0;
 }
 
