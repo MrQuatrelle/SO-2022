@@ -357,6 +357,7 @@ int clear_dir_entry(inode_t* inode, char const* sub_name) {
         return -1; // not a directory
     }
 
+pthread_rwlock_wrlock(inode->rwlock);
     // Locates the block containing the entries of the directory
     dir_entry_t* dir_entry = (dir_entry_t*)data_block_get(inode->i_data_block);
     ALWAYS_ASSERT(dir_entry != NULL,
@@ -366,9 +367,11 @@ int clear_dir_entry(inode_t* inode, char const* sub_name) {
         if (!strcmp(dir_entry[i].d_name, sub_name)) {
             dir_entry[i].d_inumber = -1;
             memset(dir_entry[i].d_name, 0, MAX_FILE_NAME);
+            pthread_rwlock_unlock(inode->rwlock);
             return 0;
         }
     }
+    pthread_rwlock_unlock(inode->rwlock);
     return -1; // sub_name not found
 }
 
