@@ -516,10 +516,6 @@ void* data_block_get(int block_number) {
  *   - No space in open file table for a new open file.
  */
 int add_to_open_file_table(int inumber, size_t offset) {
-    // TODO: Pass this rwlock to a conditional lock:
-    //       If there aren't any "free" file handles, it waits for the signal
-    //       given by remove_from_open_file_table() when a handle goes out of
-    //       use.
     pthread_rwlock_wrlock(&open_file_table_rwlock);
     for (int i = 0; i < MAX_OPEN_FILES; i++) {
         if (free_open_file_entries[i] == FREE) {
@@ -578,11 +574,9 @@ open_file_entry_t* get_open_file_entry(int fhandle) {
 
 void inode_get_or_wait_lock(inode_t* inode, open_permission_t open_access) {
     if (open_access == READ_ONLY) {
-        // HACK: this will break at "jantar dos filosofos"...
         pthread_rwlock_rdlock(inode->rwlock);
         return;
     }
-    // HACK: this will break at "jantar dos filosofos" too...
     pthread_rwlock_trywrlock(inode->rwlock);
 }
 

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define NUM_THREADS 10
+#define NUM_THREADS 100
 
 typedef struct {
     char* filename;
