@@ -1,6 +1,7 @@
 #include "state.h"
 #include "betterassert.h"
 
+#include <bits/pthreadtypes.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -515,10 +516,6 @@ void* data_block_get(int block_number) {
  *   - No space in open file table for a new open file.
  */
 int add_to_open_file_table(int inumber, size_t offset) {
-    // TODO: Pass this rwlock to a conditional lock:
-    //       If there aren't any "free" file handles, it waits for the signal
-    //       given by remove_from_open_file_table() when a handle goes out of
-    //       use.
     pthread_rwlock_wrlock(&open_file_table_rwlock);
     for (int i = 0; i < MAX_OPEN_FILES; i++) {
         if (free_open_file_entries[i] == FREE) {
@@ -562,6 +559,7 @@ void remove_from_open_file_table(int fhandle) {
  * Returns pointer to the entry, or NULL if the fhandle is
  * invalid/closed/never opened.
  */
+
 open_file_entry_t* get_open_file_entry(int fhandle) {
     if (!valid_file_handle(fhandle)) {
         return NULL;
@@ -572,4 +570,16 @@ open_file_entry_t* get_open_file_entry(int fhandle) {
     }
 
     return &open_file_table[fhandle];
+}
+
+void inode_get_or_wait_lock(inode_t* inode, open_permission_t open_access) {
+    if (open_access == READ_ONLY) {
+        pthread_rwlock_rdlock(inode->rwlock);
+        return;
+    }
+    pthread_rwlock_trywrlock(inode->rwlock);
+}
+
+void inode_unlock(inode_t* inode) {
+    pthread_rwlock_unlock(inode->rwlock);
 }
