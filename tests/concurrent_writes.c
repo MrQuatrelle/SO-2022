@@ -6,26 +6,18 @@
 #include <string.h>
 #include <unistd.h>
 
-#define NUM_THREADS 1000
+#define NUM_THREADS 1024
 
 typedef struct {
     char* filename;
 } thread_arg;
 
-char *str = "BBB!";
-
 void* thread_fn(void* arg) {
     thread_arg args = *(thread_arg*) arg;
-    char buffer[5];
-    int fh = tfs_open(args.filename, 0); // 0 = RO
+    int fh = tfs_open(args.filename, TFS_O_APPEND); // 0 = RO
     if (fh == -1)
         printf("probably running out of open file entries\n");
-    sleep(1); // waits for everyone to open the file
-    tfs_read(fh, buffer, 5);
-    if(strcmp(buffer, str)) {
-        printf("not reading properly\n");
-        exit(1);
-    }
+    tfs_write(fh,"1",1);
     tfs_close(fh);
     return NULL;
 }
@@ -35,17 +27,14 @@ int main() {
     pthread_t tid[NUM_THREADS];
 
     tfs_params params  = tfs_default_params();
+    params.max_open_files_count = 3;
+    params.max_inode_count =3;
     params.max_open_files_count = 1001;
-    params.max_inode_count =1001;
 
     assert(tfs_init(&params) != -1);
 
     int fh = tfs_open(path_to_file, TFS_O_CREAT);
     assert(fh != -1); //file creation failed
-
-    // failed to write to the file?
-    assert(tfs_write(fh, str, strlen(str)) == strlen(str));
-    
     tfs_close(fh);
 
     thread_arg arg = {.filename = path_to_file };
@@ -57,6 +46,12 @@ int main() {
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(tid[i], NULL);
     }
+
+    fh = tfs_open(path_to_file, TFS_O_CREAT);
+    assert(fh != -1); //file creation failed
+
+    assert(tfs_write(fh,"1",1) == 0);
+    tfs_close(fh);
 
     printf("\033[92m Successful test.\n\033[0m");
     return 0;
