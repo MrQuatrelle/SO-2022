@@ -1,6 +1,7 @@
 #include "state.h"
 #include "betterassert.h"
 
+#include <bits/pthreadtypes.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -562,6 +563,7 @@ void remove_from_open_file_table(int fhandle) {
  * Returns pointer to the entry, or NULL if the fhandle is
  * invalid/closed/never opened.
  */
+
 open_file_entry_t* get_open_file_entry(int fhandle) {
     if (!valid_file_handle(fhandle)) {
         return NULL;
@@ -572,4 +574,18 @@ open_file_entry_t* get_open_file_entry(int fhandle) {
     }
 
     return &open_file_table[fhandle];
+}
+
+void inode_get_or_wait_lock(inode_t* inode, open_permission_t open_access) {
+    if (open_access == READ_ONLY) {
+        // HACK: this will break at "jantar dos filosofos"...
+        pthread_rwlock_rdlock(inode->rwlock);
+        return;
+    }
+    // HACK: this will break at "jantar dos filosofos" too...
+    pthread_rwlock_trywrlock(inode->rwlock);
+}
+
+void inode_unlock(inode_t* inode) {
+    pthread_rwlock_unlock(inode->rwlock);
 }

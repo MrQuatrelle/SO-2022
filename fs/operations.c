@@ -97,6 +97,7 @@ int tfs_open(const char* name, tfs_file_mode_t mode) {
             if (inum == -1) {
                 return -1;
             }
+            inode = inode_get(inum);
         }
 
         // Truncate (if requested)
@@ -105,13 +106,17 @@ int tfs_open(const char* name, tfs_file_mode_t mode) {
                 data_block_free(inode->i_data_block);
                 inode->i_size = 0;
             }
+            inode_get_or_wait_lock(inode, READ_WRITE);
         }
         // Determine initial offset
         if (mode & TFS_O_APPEND) {
             offset = inode->i_size;
+            inode_get_or_wait_lock(inode, READ_WRITE);
         } else {
             offset = 0;
+            inode_get_or_wait_lock(inode, READ_ONLY);
         }
+
     } else if (mode & TFS_O_CREAT) {
         // The file does not exist; the mode specified that it should be created
         // Create inode
@@ -120,12 +125,15 @@ int tfs_open(const char* name, tfs_file_mode_t mode) {
             return -1; // no space in inode table
         }
 
+        inode_t* inode = inode_get(inum);
+
         // Add entry in the root directory
         if (add_dir_entry(root_dir_inode, name + 1, inum) == -1) {
             inode_delete(inum);
             return -1; // no space in directory
         }
 
+        inode_get_or_wait_lock(inode, READ_WRITE);
         offset = 0;
     } else {
         return -1;
@@ -209,6 +217,9 @@ int tfs_close(int fhandle) {
     if (file == NULL) {
         return -1; // invalid fd
     }
+
+    inode_t* inode = inode_get(file->of_inumber);
+    inode_unlock(inode);
 
     remove_from_open_file_table(fhandle);
 
