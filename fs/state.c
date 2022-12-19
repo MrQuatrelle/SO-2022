@@ -572,14 +572,14 @@ open_file_entry_t* get_open_file_entry(int fhandle) {
     return &open_file_table[fhandle];
 }
 
-void inode_get_or_wait_lock(inode_t* inode, open_permission_t open_access) {
+void inode_lock(const inode_t* inode, open_permission_t open_access) {
     if (open_access == READ_ONLY) {
         pthread_rwlock_rdlock(inode->rwlock);
         return;
     }
-    pthread_rwlock_trywrlock(inode->rwlock);
+    pthread_rwlock_wrlock(inode->rwlock);
 }
 
-void inode_unlock(inode_t* inode) {
+void inode_unlock(const inode_t* inode) {
     pthread_rwlock_unlock(inode->rwlock);
 }

@@ -100,22 +100,23 @@ int tfs_open(const char* name, tfs_file_mode_t mode) {
             inode = inode_get(inum);
         }
 
+        inode_lock(inode, READ_WRITE);
+
         // Truncate (if requested)
         if (mode & TFS_O_TRUNC) {
             if (inode->i_size > 0) {
                 data_block_free(inode->i_data_block);
                 inode->i_size = 0;
             }
-            inode_get_or_wait_lock(inode, READ_WRITE);
         }
+
         // Determine initial offset
         if (mode & TFS_O_APPEND) {
             offset = inode->i_size;
-            inode_get_or_wait_lock(inode, READ_WRITE);
         } else {
             offset = 0;
-            inode_get_or_wait_lock(inode, READ_ONLY);
         }
+        inode_unlock(inode);
 
     } else if (mode & TFS_O_CREAT) {
         // The file does not exist; the mode specified that it should be created
@@ -126,14 +127,15 @@ int tfs_open(const char* name, tfs_file_mode_t mode) {
         }
 
         inode_t* inode = inode_get(inum);
+        inode_lock(inode, READ_WRITE);
 
+        inode_unlock(inode);
         // Add entry in the root directory
         if (add_dir_entry(root_dir_inode, name + 1, inum) == -1) {
             inode_delete(inum);
             return -1; // no space in directory
         }
 
-        inode_get_or_wait_lock(inode, READ_WRITE);
         offset = 0;
     } else {
         return -1;
@@ -218,9 +220,6 @@ int tfs_close(int fhandle) {
         return -1; // invalid fd
     }
 
-    inode_t* inode = inode_get(file->of_inumber);
-    inode_unlock(inode);
-
     remove_from_open_file_table(fhandle);
 
     return 0;
@@ -235,6 +234,7 @@ ssize_t tfs_write(int fhandle, const void* buffer, size_t to_write) {
     //  From the open file table entry, we get the inode
     inode_t* inode = inode_get(file->of_inumber);
     ALWAYS_ASSERT(inode != NULL, "tfs_write: inode of open file deleted");
+    inode_lock(inode, READ_WRITE);
 
     // Determine how many bytes to write
     size_t block_size = state_block_size();
@@ -247,6 +247,7 @@ ssize_t tfs_write(int fhandle, const void* buffer, size_t to_write) {
             // If empty file, allocate new block
             int bnum = data_block_alloc();
             if (bnum == -1) {
+                inode_unlock(inode);
                 return -1; // no space
             }
 
@@ -266,6 +267,7 @@ ssize_t tfs_write(int fhandle, const void* buffer, size_t to_write) {
         }
     }
 
+    inode_unlock(inode);
     return (ssize_t)to_write;
 }
 
@@ -278,6 +280,7 @@ ssize_t tfs_read(int fhandle, void* buffer, size_t len) {
     // From the open file table entry, we get the inode
     const inode_t* inode = inode_get(file->of_inumber);
     ALWAYS_ASSERT(inode != NULL, "tfs_read: inode of open file deleted");
+    inode_lock(inode, READ_ONLY);
 
     // Determine how many bytes to read
     size_t to_read = inode->i_size - file->of_offset;
@@ -295,6 +298,7 @@ ssize_t tfs_read(int fhandle, void* buffer, size_t len) {
         file->of_offset += to_read;
     }
 
+    inode_unlock(inode);
     return (ssize_t)to_read;
 }
 

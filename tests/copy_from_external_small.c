@@ -18,18 +18,20 @@ int main() {
     f = tfs_copy_from_external_fs(path_src, path_copied_file);
     assert(f != -1);
 
-    f = tfs_open(path_copied_file, TFS_O_CREAT);
+    f = tfs_open(path_copied_file, 0);
     assert(f != -1);
 
     r = tfs_read(f, buffer, sizeof(buffer) - 1);
     assert(r == strlen(str_ext_file));
     assert(!memcmp(buffer, str_ext_file, strlen(str_ext_file)));
 
+    tfs_close(f);
+
     // Repeat the copy to the same file
     f = tfs_copy_from_external_fs(path_src, path_copied_file);
     assert(f != -1);
 
-    f = tfs_open(path_copied_file, TFS_O_CREAT);
+    f = tfs_open(path_copied_file, 0);
     assert(f != -1);
 
     // Contents should be overwriten, not appended

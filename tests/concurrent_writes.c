@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #define NUM_THREADS 1024
@@ -17,7 +18,8 @@ void* thread_fn(void* arg) {
     int fh = tfs_open(args.filename, TFS_O_APPEND); // 0 = RO
     if (fh == -1)
         printf("probably running out of open file entries\n");
-    tfs_write(fh,"1",1);
+    tfs_write(fh, "1", 1);
+    
     tfs_close(fh);
     return NULL;
 }
@@ -28,8 +30,8 @@ int main() {
 
     tfs_params params  = tfs_default_params();
     params.max_open_files_count = 3;
-    params.max_inode_count =3;
-    params.max_open_files_count = 1001;
+    params.max_inode_count = 3;
+    params.max_open_files_count = 1024;
 
     assert(tfs_init(&params) != -1);
 
@@ -47,10 +49,12 @@ int main() {
         pthread_join(tid[i], NULL);
     }
 
-    fh = tfs_open(path_to_file, TFS_O_CREAT);
+    fh = tfs_open(path_to_file, TFS_O_APPEND);
     assert(fh != -1); //file creation failed
 
-    assert(tfs_write(fh,"1",1) == 0);
+    ssize_t len = tfs_write(fh, "1", 1);
+    printf("len = %zd\n", len);
+    assert(len == 0);
     tfs_close(fh);
 
     printf("\033[92m Successful test.\n\033[0m");
