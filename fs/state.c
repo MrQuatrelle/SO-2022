@@ -1,7 +1,6 @@
 #include "state.h"
 #include "betterassert.h"
 
-#include <bits/pthreadtypes.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
