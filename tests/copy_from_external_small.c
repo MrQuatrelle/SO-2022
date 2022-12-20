@@ -39,7 +39,7 @@ int main() {
     assert(r == strlen(str_ext_file));
     assert(!memcmp(buffer, str_ext_file, strlen(str_ext_file)));
 
-    printf("Successful test.\n");
+    printf("\033[92m Successful test.\n\033[0m");
 
     return 0;
 }

@@ -34,5 +34,5 @@ int main() {
     assert(tfs_read(fd, read_contents, sizeof(read_contents)) != -1);
     assert(strcmp(read_contents, write_contents) == 0);
 
-    printf("Successful test.\n");
+    printf("\033[92m Successful test.\n\033[0m");
 }

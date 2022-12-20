@@ -130,7 +130,7 @@ int main() {
         run_test(rep);
     }
 
-    printf("Successful test.\n");
+    printf("\033[92m Successful test.\n\033[0m");
 
     return 0;
 }
