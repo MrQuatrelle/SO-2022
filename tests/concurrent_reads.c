@@ -19,10 +19,8 @@ void* thread_fn(void* arg) {
     char buffer[5];
     int fh = tfs_open(args.filename, 0); // 0 = RO
     if (fh == -1)
-        printf("probably running out of open file entries\n");
     tfs_read(fh, buffer, 5);
     if (strcmp(buffer, str)) {
-        printf("not reading properly\n");
         exit(1);
     }
     tfs_close(fh);
