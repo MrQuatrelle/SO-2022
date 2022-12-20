@@ -162,18 +162,18 @@ int state_destroy(void) {
     free(inode_table);
 
     // destroying inode allocation table
-    ALWAYS_ASSERT(pthread_rwlock_init(&alloc_table_rwlock, NULL) == 0,
+    ALWAYS_ASSERT(pthread_rwlock_destroy(&alloc_table_rwlock) == 0,
         "Error initializing inode allocation table rwlock");
     free(freeinode_ts);
 
     // destroying datablocks and their allocation table
-    ALWAYS_ASSERT(pthread_rwlock_init(&block_table_rwlock, NULL) == 0,
+    ALWAYS_ASSERT(pthread_rwlock_destroy(&block_table_rwlock) == 0,
         "Error initializing inode allocation table rwlock");
     free(fs_data);
     free(free_blocks);
     //
     // destroying open file table and its allocation table
-    ALWAYS_ASSERT(pthread_rwlock_init(&open_file_table_rwlock, NULL) == 0,
+    ALWAYS_ASSERT(pthread_rwlock_destroy(&open_file_table_rwlock) == 0,
         "Error initializing inode allocation table rwlock");
     free(open_file_table);
     free(free_open_file_entries);
