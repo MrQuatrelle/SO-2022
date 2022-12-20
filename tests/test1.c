@@ -33,7 +33,7 @@ int main() {
 
     assert(tfs_close(f) != -1);
 
-    printf("Successful test.\n");
+    printf("\033[92m Successful test.\n\033[0m");
 
     return 0;
 }
