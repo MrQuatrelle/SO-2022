@@ -72,6 +72,9 @@ int main() {
     }
 
     assert(tfs_sym_link(target_path2, link_path2) != -1);
+
+    // fails to link to a non existant file.
+    assert(tfs_sym_link("/nonexistant",link_path2) == -1);
     assert_contents_ok(link_path2);
 
     assert(tfs_destroy() != -1);
