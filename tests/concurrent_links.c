@@ -14,7 +14,6 @@ typedef struct {
 
 void* thread_fn(void* in) {
     thread_input* args = (thread_input*)in;
-    printf("%s\n", args->path_generated_file);
     assert(tfs_link("/target", args->path_generated_file) != -1);
     return NULL;
 }
@@ -51,8 +50,7 @@ int main() {
         int lh = tfs_open(link_name, 0);
         assert(lh != -1);
         char buffer[strlen(file_contents) + 1];
-        ssize_t read = tfs_read(lh, buffer, sizeof(buffer));
-        printf("%s %zd %lu\n", buffer, read, sizeof(buffer));
+        assert(tfs_read(lh, buffer, sizeof(buffer)) == strlen(buffer));
         assert(memcmp(buffer, file_contents, sizeof(buffer)) == 0);
         assert(tfs_close(lh) != -1);
     }
