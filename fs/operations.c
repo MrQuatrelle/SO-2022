@@ -93,11 +93,7 @@ int tfs_open(const char* name, tfs_file_mode_t mode) {
 
         // If inode is a sym link.
         if (inode->i_node_type == T_SYM_LINK) {
-            inum = tfs_lookup(inode->target, root_dir_inode);
-            if (inum == -1) {
-                return -1;
-            }
-            inode = inode_get(inum);
+            return tfs_open(inode->target, mode);
         }
 
         inode_lock(inode, READ_WRITE);
@@ -126,10 +122,6 @@ int tfs_open(const char* name, tfs_file_mode_t mode) {
             return -1; // no space in inode table
         }
 
-        inode_t* inode = inode_get(inum);
-        inode_lock(inode, READ_WRITE);
-
-        inode_unlock(inode);
         // Add entry in the root directory
         if (add_dir_entry(root_dir_inode, name + 1, inum) == -1) {
             inode_delete(inum);

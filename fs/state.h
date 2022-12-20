@@ -30,7 +30,7 @@ typedef struct {
             int i_data_block;
             int hard_link_counter;
         };
-        char target[1024];
+        char target[MAX_FILE_NAME];
     };
 
     pthread_rwlock_t* rwlock;
