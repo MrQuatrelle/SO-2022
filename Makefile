@@ -32,7 +32,7 @@ CFLAGS += -Wno-sign-compare
 
 # optional debug symbols: run make DEBUG=no to deactivate them
 ifneq ($(strip $(DEBUG)), no)
-  CFLAGS += -g -fsanitize=thread
+  CFLAGS += -g 
 endif
 
 # optional O3 optimization symbols: run make OPTIM=no to deactivate them
