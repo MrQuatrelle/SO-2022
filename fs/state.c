@@ -504,7 +504,9 @@ void data_block_free(int block_number) {
 
     insert_delay(); // simulate storage access delay to free_blocks
 
+    pthread_rwlock_wrlock(&block_table_rwlock);
     free_blocks[block_number] = FREE;
+    pthread_rwlock_unlock(&block_table_rwlock);
 }
 
 /**
