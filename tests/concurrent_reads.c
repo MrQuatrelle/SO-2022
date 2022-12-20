@@ -18,11 +18,9 @@ void* thread_fn(void* arg) {
     thread_arg args = *(thread_arg*)arg;
     char buffer[5];
     int fh = tfs_open(args.filename, 0); // 0 = RO
-    if (fh == -1)
-    tfs_read(fh, buffer, 5);
-    if (strcmp(buffer, str)) {
-        exit(1);
-    }
+    if (fh != -1)
+        tfs_read(fh, buffer, 5);
+    assert(strcmp(buffer, str) == 0);
     tfs_close(fh);
     return NULL;
 }
