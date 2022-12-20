@@ -49,7 +49,7 @@ int main() {
         sprintf(link_name, "/l%d", i);
         int lh = tfs_open(link_name, 0);
         assert(lh != -1);
-        char buffer[strlen(file_contents) + 1];
+        char buffer[7];
         assert(tfs_read(lh, buffer, sizeof(buffer)) == strlen(buffer));
         assert(memcmp(buffer, file_contents, sizeof(buffer)) == 0);
         assert(tfs_close(lh) != -1);
