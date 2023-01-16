@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "betterassert.h"
 
@@ -356,4 +357,16 @@ int tfs_copy_from_external_fs(const char* source_path, const char* dest_path) {
     free(buffer);
     fclose(extFile);
     return (int)bytes_wrote;
+}
+
+ssize_t get_file_size(const char* file_path) {
+
+    inode_t* root_inode = inode_get(ROOT_DIR_INUM);
+    int inumber = find_in_dir(root_inode, file_path + 1);
+    if (inumber == -1)
+        return -1;
+
+    inode_t* inode = inode_get(inumber);
+
+    return (ssize_t) inode->i_size;
 }
